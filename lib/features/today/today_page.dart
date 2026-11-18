@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'today_widget.dart';
+
 class TodayPage extends StatefulWidget {
   const TodayPage({super.key, this.now = DateTime.now});
 
@@ -86,14 +88,60 @@ class _TodayPageState extends State<TodayPage> {
         '${_weekdays[_date.weekday - 1]}, ${_months[_date.month - 1]} '
         '${_date.day}, ${_date.year}';
 
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        _buildScrollContent(theme, colors, dateLabel),
+        const PositionedDirectional(
+          end: 16,
+          bottom: 16,
+          child: TodayQuickAdd(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildScrollContent(
+    ThemeData theme,
+    ColorScheme colors,
+    String dateLabel,
+  ) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 12, 16, 16),
+      key: const PageStorageKey('today-dashboard'),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 88),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildHeader(theme, colors, dateLabel),
+              const SizedBox(height: 16),
+              const TodayDashboard(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(ThemeData theme, ColorScheme colors, String dateLabel) {
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(start: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.filter_vintage_outlined, color: colors.primary),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: Image.asset(
+                  'assets/images/second_brain_icon.png',
+                  width: 24,
+                  height: 24,
+                  excludeFromSemantics: true,
+                ),
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
