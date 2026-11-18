@@ -3,6 +3,7 @@ import 'dart:ui' show SemanticsAction, Tristate;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:second_brain/features/main/main_widget.dart';
+import 'package:second_brain/features/today/today_page.dart';
 import 'package:second_brain/main.dart';
 
 void main() {
@@ -12,17 +13,22 @@ void main() {
     final semantics = tester.ensureSemantics();
     try {
       await tester.pumpWidget(const MyApp());
-      expect(find.text('Today placeholder'), findsOneWidget);
+      expect(find.byType(TodayPage), findsOneWidget);
 
       for (final tab in ['Habit', 'More', 'Today']) {
-        await tester.tap(find.text(tab));
+        await tester.tap(_tabLabel(tab));
         await tester.pumpAndSettle();
-        expect(find.text('$tab placeholder'), findsOneWidget);
+        expect(_tabContent(tab), findsOneWidget);
         expect(find.byType(MainBottomNavigation), findsOneWidget);
         for (final label in ['Today', 'Habit', 'More']) {
-          expect(find.text(label), findsOneWidget);
+          expect(_tabLabel(label), findsOneWidget);
           final data = tester
-              .getSemantics(find.bySemanticsLabel(label))
+              .getSemantics(
+                find.descendant(
+                  of: find.byType(MainBottomNavigation),
+                  matching: find.bySemanticsLabel(label),
+                ),
+              )
               .getSemanticsData();
           expect(data.flagsCollection.isButton, isTrue);
           expect(
@@ -77,11 +83,11 @@ void main() {
         await tester.pumpWidget(const MyApp());
 
         for (final tab in ['Today', 'Habit', 'More']) {
-          await tester.tap(find.text(tab));
+          await tester.tap(_tabLabel(tab));
           await tester.pumpAndSettle();
-          expect(find.text('$tab placeholder'), findsOneWidget);
+          expect(_tabContent(tab), findsOneWidget);
           final target = tester.getSize(
-            find.ancestor(of: find.text(tab), matching: find.byType(InkWell)),
+            find.ancestor(of: _tabLabel(tab), matching: find.byType(InkWell)),
           );
           expect(target.width, greaterThanOrEqualTo(48));
           expect(target.height, greaterThanOrEqualTo(48));
@@ -91,3 +97,11 @@ void main() {
     );
   }
 }
+
+Finder _tabLabel(String label) => find.descendant(
+  of: find.byType(MainBottomNavigation),
+  matching: find.text(label),
+);
+
+Finder _tabContent(String tab) =>
+    tab == 'Today' ? find.byType(TodayPage) : find.text('$tab placeholder');

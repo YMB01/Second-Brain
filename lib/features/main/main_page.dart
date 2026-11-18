@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../today/today_page.dart';
 import 'main_widget.dart';
 
 /// The root route owns the tab bar. Push deeper routes on the root Navigator
@@ -21,7 +22,7 @@ class _MainPageState extends State<MainPage> {
         child: IndexedStack(
           index: _selectedIndex,
           children: const [
-            _TabPlaceholder(title: 'Today'),
+            TodayPage(),
             _TabPlaceholder(title: 'Habit'),
             _TabPlaceholder(title: 'More'),
           ],

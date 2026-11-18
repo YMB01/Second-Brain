@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:second_brain/core/theme/app_theme.dart';
+import 'package:second_brain/features/today/today_page.dart';
 import 'package:second_brain/main.dart';
 
 double contrast(Color first, Color second) {
@@ -55,7 +56,7 @@ void main() {
 
     expect(activeTheme().brightness, Brightness.light);
     expect(activeTheme().colorScheme.primary, const Color(0xFF7856D8));
-    expect(find.text('Today placeholder'), findsOneWidget);
+    expect(find.byType(TodayPage), findsOneWidget);
     await tester.tap(find.text('Habit'));
     await tester.pumpAndSettle();
 
