@@ -80,7 +80,7 @@ void main() {
         addTearDown(tester.view.resetDevicePixelRatio);
         addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
         addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-        await tester.pumpWidget(const MyApp());
+        await tester.pumpWidget(const MyApp(themeMode: ThemeMode.system));
 
         for (final tab in ['Today', 'Habit', 'More']) {
           await tester.tap(_tabLabel(tab));

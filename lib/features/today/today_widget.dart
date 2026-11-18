@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/widgets/sprout_icon.dart';
+
 typedef _SampleTask = ({
   String title,
   String time,
@@ -79,9 +81,9 @@ class TodayDashboard extends StatelessWidget {
         const SizedBox(height: 16),
         _TaskSection(title: 'Overdue', tasks: _overdue, overdue: true),
         const SizedBox(height: 16),
-        _TaskSection(title: 'Today’s Tasks', tasks: _today),
+        _TaskSection(title: 'Tasks', tasks: _today),
         const SizedBox(height: 16),
-        const _SectionHeading(title: 'Today Habits', count: 2),
+        const _SectionHeading(title: 'Habits', count: 2),
         const SizedBox(height: 8),
         const _HabitTile(
           title: 'Drink a glass of water',
@@ -171,7 +173,9 @@ class _FocusCard extends StatelessWidget {
                   backgroundColor: colors.outlineVariant,
                   color: colors.primary,
                 ),
-                Icon(Icons.eco_outlined, color: colors.primary, size: 22),
+                Center(
+                  child: SproutIcon(color: colors.onSurfaceVariant, size: 20),
+                ),
               ],
             ),
           ),
@@ -354,10 +358,12 @@ class _TaskTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    final priorityColor = switch (task.priority) {
-      'High' => colors.error,
-      'Medium' => colors.tertiary,
-      _ => colors.primary,
+    final dark = theme.brightness == Brightness.dark;
+    final priorityColor = switch ((overdue, task.priority)) {
+      (true, _) => colors.error,
+      (_, 'High') => dark ? const Color(0xFFFFAE70) : const Color(0xFFC26423),
+      (_, 'Medium') => dark ? const Color(0xFFF4CD73) : const Color(0xFFAD780E),
+      _ => dark ? const Color(0xFF8CCB91) : const Color(0xFF438447),
     };
     return _DashboardTile(
       tint: overdue ? colors.error : (task.done ? colors.primary : null),
@@ -378,6 +384,14 @@ class _TaskTile extends StatelessWidget {
       ),
       title: task.title,
       completed: task.done,
+      trailing: task.done
+          ? null
+          : Icon(
+              Icons.circle,
+              size: 9,
+              color: priorityColor,
+              semanticLabel: '${task.priority} priority',
+            ),
       details: [
         _TileDetail(
           icon: Icons.schedule_outlined,
@@ -385,11 +399,6 @@ class _TaskTile extends StatelessWidget {
           color: overdue ? colors.error : colors.onSurfaceVariant,
         ),
         _TileDetail(icon: Icons.folder_outlined, label: task.category),
-        _TileDetail(
-          icon: Icons.circle,
-          label: '${task.priority} priority',
-          iconColor: priorityColor,
-        ),
       ],
     );
   }
@@ -424,6 +433,7 @@ class _DashboardTile extends StatelessWidget {
     required this.details,
     this.completed = false,
     this.tint,
+    this.trailing,
   });
 
   final Widget leading;
@@ -431,6 +441,7 @@ class _DashboardTile extends StatelessWidget {
   final List<Widget> details;
   final bool completed;
   final Color? tint;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -468,6 +479,10 @@ class _DashboardTile extends StatelessWidget {
               ],
             ),
           ),
+          if (trailing case final indicator?) ...[
+            const SizedBox(width: 10),
+            indicator,
+          ],
         ],
       ),
     );
@@ -475,17 +490,11 @@ class _DashboardTile extends StatelessWidget {
 }
 
 class _TileDetail extends StatelessWidget {
-  const _TileDetail({
-    required this.icon,
-    required this.label,
-    this.color,
-    this.iconColor,
-  });
+  const _TileDetail({required this.icon, required this.label, this.color});
 
   final IconData icon;
   final String label;
   final Color? color;
-  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -496,11 +505,7 @@ class _TileDetail extends StatelessWidget {
         children: [
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
-            child: Icon(
-              icon,
-              size: icon == Icons.circle ? 8 : 13,
-              color: iconColor ?? foreground,
-            ),
+            child: Icon(icon, size: 13, color: foreground),
           ),
           TextSpan(text: ' $label'),
         ],

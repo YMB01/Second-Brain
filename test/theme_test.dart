@@ -46,11 +46,22 @@ void main() {
     });
   }
 
-  testWidgets('System theme changes preserve the selected tab', (tester) async {
+  testWidgets('App defaults to light even on a dark system', (tester) async {
+    final platform = tester.platformDispatcher;
+    platform.platformBrightnessTestValue = Brightness.dark;
+    addTearDown(platform.clearPlatformBrightnessTestValue);
+    await tester.pumpWidget(const MyApp());
+    final context = tester.element(find.byType(Scaffold));
+    expect(Theme.of(context).brightness, Brightness.light);
+  });
+
+  testWidgets('System theme changes preserve the selected tab when opted in', (
+    tester,
+  ) async {
     final platform = tester.platformDispatcher;
     addTearDown(platform.clearPlatformBrightnessTestValue);
     platform.platformBrightnessTestValue = Brightness.light;
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(const MyApp(themeMode: ThemeMode.system));
 
     ThemeData activeTheme() => Theme.of(tester.element(find.byType(Scaffold)));
 

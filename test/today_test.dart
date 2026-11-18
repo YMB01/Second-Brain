@@ -18,7 +18,7 @@ void main() {
         addTearDown(platform.clearPlatformBrightnessTestValue);
         addTearDown(platform.clearTextScaleFactorTestValue);
 
-        await tester.pumpWidget(const MyApp());
+        await tester.pumpWidget(const MyApp(themeMode: ThemeMode.system));
         await tester.pumpAndSettle();
         final nav = find.byType(MainBottomNavigation);
         final quickAdd = find.byType(FloatingActionButton);
@@ -53,14 +53,26 @@ void main() {
         expect(checks.every((check) => check.onChanged == null), isTrue);
         expect(tester.widget<FloatingActionButton>(quickAdd).onPressed, isNull);
         expect(find.text('Overdue'), findsOneWidget);
-        expect(find.text('Today’s Tasks'), findsOneWidget);
+        expect(find.text('Tasks'), findsOneWidget);
+        final priorityDots = find.byIcon(Icons.circle);
+        expect(priorityDots, findsNWidgets(4));
+        expect(
+          find.textContaining('priority', findRichText: true),
+          findsNothing,
+        );
+        expect(
+          tester.getCenter(priorityDots.first).dx,
+          greaterThan(
+            tester.getCenter(find.text('Finish project proposal')).dx,
+          ),
+        );
 
         await tester.scrollUntilVisible(
           find.text('Take a 20-minute walk'),
           240,
           scrollable: find.byType(Scrollable),
         );
-        expect(find.text('Today Habits'), findsOneWidget);
+        expect(find.text('Habits'), findsOneWidget);
         expect(
           find.textContaining('Weekdays', findRichText: true),
           findsOneWidget,

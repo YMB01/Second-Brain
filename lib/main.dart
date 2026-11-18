@@ -8,7 +8,9 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, this.themeMode = ThemeMode.light});
+
+  final ThemeMode themeMode;
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +18,7 @@ class MyApp extends StatelessWidget {
       title: 'Second Brain',
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       home: const MainPage(),
     );
   }
