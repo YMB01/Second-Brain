@@ -1,30 +1,93 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+import 'dart:ui' show SemanticsAction, Tristate;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:second_brain/features/main/main_widget.dart';
 import 'package:second_brain/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Tabs switch content and keep the bottom bar visible', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    try {
+      await tester.pumpWidget(const MyApp());
+      expect(find.text('Today placeholder'), findsOneWidget);
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      for (final tab in ['Habit', 'More', 'Today']) {
+        await tester.tap(find.text(tab));
+        await tester.pumpAndSettle();
+        expect(find.text('$tab placeholder'), findsOneWidget);
+        expect(find.byType(MainBottomNavigation), findsOneWidget);
+        for (final label in ['Today', 'Habit', 'More']) {
+          expect(find.text(label), findsOneWidget);
+          final data = tester
+              .getSemantics(find.bySemanticsLabel(label))
+              .getSemanticsData();
+          expect(data.flagsCollection.isButton, isTrue);
+          expect(
+            data.flagsCollection.isSelected == Tristate.isTrue,
+            label == tab,
+          );
+          expect(data.hasAction(SemanticsAction.tap), isTrue);
+        }
+      }
+    } finally {
+      semantics.dispose();
+    }
   });
+
+  testWidgets('Root routes hide the bar and restore the selected tab', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MyApp());
+    await tester.tap(find.text('Habit'));
+    await tester.pumpAndSettle();
+    final navigator = Navigator.of(
+      tester.element(find.text('Habit placeholder')),
+      rootNavigator: true,
+    );
+    navigator.push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => const Scaffold(body: Center(child: Text('Test route'))),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Test route'), findsOneWidget);
+    expect(find.byType(MainBottomNavigation), findsNothing);
+
+    navigator.pop();
+    await tester.pumpAndSettle();
+    expect(find.text('Habit placeholder'), findsOneWidget);
+    expect(find.byType(MainBottomNavigation), findsOneWidget);
+  });
+
+  for (final brightness in Brightness.values) {
+    testWidgets(
+      '${brightness.name} navigation fits small phones with large text',
+      (tester) async {
+        tester.view.physicalSize = const Size(320, 640);
+        tester.view.devicePixelRatio = 1;
+        tester.platformDispatcher.platformBrightnessTestValue = brightness;
+        tester.platformDispatcher.textScaleFactorTestValue = 2;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        await tester.pumpWidget(const MyApp());
+
+        for (final tab in ['Today', 'Habit', 'More']) {
+          await tester.tap(find.text(tab));
+          await tester.pumpAndSettle();
+          expect(find.text('$tab placeholder'), findsOneWidget);
+          final target = tester.getSize(
+            find.ancestor(of: find.text(tab), matching: find.byType(InkWell)),
+          );
+          expect(target.width, greaterThanOrEqualTo(48));
+          expect(target.height, greaterThanOrEqualTo(48));
+          expect(tester.takeException(), isNull);
+        }
+      },
+    );
+  }
 }
